@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { pool } from '../../db/index.js';
+import { pool } from '../db/index.js';
 
 export const GET: APIRoute = async ({ params, redirect }) => {
   const { code } = params;
