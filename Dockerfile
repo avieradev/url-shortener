@@ -15,9 +15,13 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
 # Instalar solo dependencias de producción
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 EXPOSE 4321
+
+# Variable para escuchar en todas las interfaces
+ENV HOST=0.0.0.0
+ENV PORT=4321
 
 # Comando de inicio
 CMD ["node", "./dist/server/entry.mjs"]
