@@ -1,17 +1,185 @@
 ---
-
+// Página principal - servidor renderiza HTML
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 500px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input[type="url"] {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    input[type="url"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      padding: 14px 28px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+    button:hover {
+      background: #5a67d8;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 10px;
+      display: none;
+    }
+    #result.show {
+      display: block;
+    }
+    #result.error {
+      background: #fed7d7;
+      color: #c53030;
+    }
+    #shortUrl {
+      font-size: 18px;
+      font-weight: 600;
+      color: #667eea;
+      word-break: break-all;
+    }
+    .copy-btn {
+      margin-top: 10px;
+      width: 100%;
+      background: #48bb78;
+    }
+    .copy-btn:hover {
+      background: #38a169;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔗 Acortador de URLs</h1>
+    
+    <div class="input-group">
+      <input 
+        type="url" 
+        id="urlInput" 
+        placeholder="https://ejemplo.com/tu-url-muy-larga..."
+        required
+      />
+      <button id="shortenBtn" onclick="shorten()">Acortar</button>
+    </div>
+
+    <div id="result">
+      <p>Tu URL corta:</p>
+      <p id="shortUrl"></p>
+      <button class="copy-btn" onclick="copyToClipboard()">Copiar</button>
+    </div>
+  </div>
+
+  <script>
+    async function shorten() {
+      const input = document.getElementById('urlInput');
+      const result = document.getElementById('result');
+      const shortUrl = document.getElementById('shortUrl');
+      const btn = document.getElementById('shortenBtn');
+      
+      const url = input.value.trim();
+      
+      if (!url) {
+        showError('Introduce una URL');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Acortando...';
+      
+      try {
+        const response = await fetch('/api/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          result.className = 'show';
+          shortUrl.textContent = data.shortUrl;
+        } else {
+          showError(data.error || 'Error desconocido');
+        }
+      } catch (err) {
+        showError('Error de conexión');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Acortar';
+      }
+    }
+
+    function showError(message) {
+      const result = document.getElementById('result');
+      const shortUrl = document.getElementById('shortUrl');
+      result.className = 'show error';
+      shortUrl.textContent = message;
+    }
+
+    function copyToClipboard() {
+      const text = document.getElementById('shortUrl').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = '¡Copiado!';
+        setTimeout(() => btn.textContent = 'Copiar', 2000);
+      });
+    }
+
+    // Permitir Enter para enviar
+    document.getElementById('urlInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') shorten();
+    });
+  </script>
+</body>
 </html>
