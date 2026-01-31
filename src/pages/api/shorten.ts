@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { pool } from '../../../db/index.js';
+import { pool } from '../../db/index.js';
 
 // Genera código aleatorio de 6 caracteres
 function generateCode(): string {
